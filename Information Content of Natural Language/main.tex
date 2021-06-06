@@ -1,0 +1,407 @@
+\documentclass[a4paper]{article}
+
+%% Language and font encodings
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+
+%% Sets page size and margins
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+%% Useful packages
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{textpos}
+\usepackage{float}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[colorlinks=true, allcolors=black]{hyperref}
+\usepackage[numbered,framed]{matlab-prettifier}
+\usepackage{relsize}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{verbatim}
+
+%% Package for graphs
+\usepackage{tikz}
+
+%% Package for loading program files
+\usepackage{listings}
+\usepackage{minted}
+
+\setlength{\parindent}{0pt}
+\newcommand{\p}{\mathbb{P}}
+
+\title{\vspace*{2cm}19.2 Information Content of Natural Language\vspace*{-1.5cm}}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{textblock*}{100mm}(0cm,-5.5cm)
+\Huge 19.2
+\end{textblock*}
+
+Note: Throughout this project the extract of text from file II-19-2-dataC.txt will be used as a sample of English text and will be referred to as the source text.
+
+\section*{Question 1}
+
+\subsection*{Entropy of English}
+Script Q1\_Entropy.py (pg.\pageref{PQ1_Entropy}) estimates the entropy of English using the frequency of appearance in the source text as an approximation for each character's (letter or space) message probability.
+\begin{figure}[H]
+    \centering
+    \begin{verbatim}
+        entropy:  4.051035745295401
+    \end{verbatim}
+    \caption{Output from Q1\_Entropy.py applied to the source text}
+    \label{fig:Q1_Entropy}
+\end{figure}
+
+\subsection*{Huffman and Shannon-Fano Codes}
+
+Script Q1\_Huffman.py (pg.\pageref{PQ1_Huffman}) implements the Huffman binary code algorithm to determine the Huffman code for English corresponding to the entropy calculated in question 1 by using the same message probabilities. This method finds the expected codeword length to be $\approx 4.093$, the full code is included in figure \ref{fig:Q1huff}.
+
+\bigskip
+Similarly, script Q1\_Shannon.py (pg.\pageref{PQ1_Shannon}) determines a corresponding Shannon-Fano code for English. This method finds the expected codeword length to be $\approx 4.5553$. The full code is included in figure \ref{fig:Q1shan}.
+
+\bigskip
+The Huffman code achieves a significantly shorter expected codeword length than the Shannon-Fano code. We can see that the codeword length for each character in the Huffman is either the same length or one shorter than that in the Shannon-Fano code. The most notable of these differences in codewords are the codewords given to space (denoted by \_ in the output) and \texttt{e} which are the two most frequent characters. Approximately 20\% and 10\% of the messages in the source text are spaces and \texttt{e}'s respectively. Shannon-Fano encodes space with a 3 digit codeword while the Huffman code secures a shorter 2 digit codeword. Similarly, \texttt{e} has a 4 digit Shannon-Fano codeword compared to a 3 digit Huffman codeword. The difference derived from these two characters alone will play a significant role in the difference in expected codeword lengths.
+
+\subsection*{Segmentation}
+
+Assuming the source were Bernoulli then segmentation would improve the expected code length. We can see this by first considering Shannon's Noiseless coding theorem.
+
+% Making minor modifications to Q1\_Huffman.py and Q1\_Shannon.py so as to process the text in segments we can see this in the results in figure \ref{fig:Q1-Seg}. While expected codeword length increases because each codeword is encoding multiple messages, the expected codeword length per message reduces and so the length of the overall encoded message decreases.
+
+\subsubsection*{Shannon's noiseless coding theorem}
+Let $A$ be a random variable that takes values in a finite alphabet $\mathcal{A}$. An optimal code $c: \mathcal{A} \rightarrow \mathcal{C}^*$ for a codeword alphabet $\mathcal{C}$ of size $|\mathcal{C}|$ satisfies:
+\begin{align*}
+    \frac{H(A)}{\log_2 |\mathcal{C}|} \leq\ \mathbb{E}|c(A)| < 1 + \frac{H(A)}{\log_2 |\mathcal{C}|}
+\end{align*}
+
+Segmentation involves blocking messages together and then coding. This means constructing a code for the new alphabet $\mathcal{A}^k$ with $k$ the length of a block. Note that the alphabet of the codewords remains the same. Let $A_i$ denote the $i$th letter in a block $B^{(k)}$. Applying Shannon's noiseless coding theorem we get that:
+\begin{align*}
+    \frac{H(B^{(k)})}{\log_2 |\mathcal{C}|} \leq \mathbb{E}|c(B^{(k)})| < 1 + \frac{H(B^{(k)})}{\log_2 |\mathcal{C}|}
+\end{align*}
+\begin{align*}
+    \frac{H(A_1, A_2, \hdots, A_k)}{\log_2 |\mathcal{C}|} \leq \mathbb{E}|c(A_1, A_2, \hdots, A_k)| < 1 + \frac{H(A_1, A_2, \hdots, A_k)}{\log_2 |\mathcal{C}|}
+\end{align*}
+
+To compare expected length we then consider the average code length per letter:
+\begin{align*}
+    \frac{H(A_1, A_2, \hdots, A_k)}{k \log_2 |\mathcal{C}|} \leq \frac{\mathbb{E}|c(A_1, A_2, \hdots, A_k)|}{k} < \frac{1}{k} + \frac{H(A_1, A_2, \hdots, A_k)}{k \log_2 |\mathcal{C}|}
+\end{align*}
+
+Assuming the source to be Bernoulli we then use the standard result that for $X$, $Y$ discrete random variables the joint entropy satisfies the following with equality if and only if $X$ and $Y$ are independent.
+\begin{align*}
+    H(X,Y) \leq H(X) + H(Y)
+\end{align*}
+
+Applying this we reach:
+\begin{align*}
+    H(A_1, A_2, \hdots, A_k) = H(A_1) + H(A_2) + \hdots + H(A_k) = kH(A)
+\end{align*}
+\begin{align*}
+    \frac{H(A)}{\log_2 |\mathcal{C}|} \leq \frac{\mathbb{E}|c(A_1, A_2, \hdots, A_k)|}{k} < \frac{1}{k} + \frac{H(A)}{\log_2 |\mathcal{C}|}
+\end{align*}
+
+Taking the limit as $k \rightarrow \infty$ the expected code length per letter tends to:
+\begin{align*}
+    \frac{\mathbb{E}|c(A_1, A_2, \hdots, A_k)|}{k} \rightarrow \frac{H(A)}{\log_2 |\mathcal{C}|}
+\end{align*}
+
+% Since Huffman codes are optimal we have that
+% \begin{align*}
+%     \frac{\mathbb{E}|c(A_1, A_2, \hdots, A_k)|}{k} = \frac{H(A)}{\log_2 |\mathcal{C}|} \qquad \forall\ k
+% \end{align*}
+% Therefore segmenting will not affect the expected code length.
+
+% However, Shannon-Fano codes are not optimal and so segmentation can improve expected code length. Shannon-Fano codes satisfies:
+% \begin{align*}
+%     \mathbb{E}|c(A)| < 1 + \frac{H(A)}{\log_2 |\mathcal{C}|}
+% \end{align*}
+
+By Shannon's Noiseless coding theorem for a given code we have that for some $0\leq \delta < 1$:
+\begin{align*}
+    \mathbb{E}|c(A)| = \delta + \frac{H(A)}{\log_2 |\mathcal{C}|} < 1 + \frac{H(A)}{\log_2 |\mathcal{C}|}
+\end{align*}
+Taking block length $k > 1/\delta$ such that $1/k < \delta$ then we have
+\begin{align*}
+    \frac{\mathbb{E}|c(A_1, A_2, \hdots, A_k)|}{k} < \frac{1}{k} + \frac{H(A)}{\log_2 |\mathcal{C}|} < \delta + \frac{H(A)}{\log_2 |\mathcal{C}|} = \mathbb{E}|c(A)|
+\end{align*}
+Therefore with sufficiently large blocks then segmenting can reduce the expected code length.
+
+% \begin{figure}[H]
+%     \centering
+%     \begin{minipage}{0.48\textwidth}
+%         \centering
+%         \begin{verbatim}
+% Huffman
+
+% block length:  1
+% expected length per block:   4.093
+% expected length per message: 4.093
+
+% block length:  2
+% expected length per block:   7.273
+% expected length per message: 3.636
+
+% block length:  3
+% expected length per block:   9.345
+% expected length per message: 3.115
+%         \end{verbatim}
+%     \end{minipage}\hfill
+%     \begin{minipage}{0.48\textwidth}
+%         \centering
+%         \begin{verbatim}
+% Shannon-Fano
+
+% block length:  1
+% expected length per block:   4.555
+% expected length per message: 4.555
+        
+% block length:  2
+% expected length per block:   7.386
+% expected length per message: 3.693
+        
+% block length:  3
+% expected length per block:   9.503
+% expected length per message: 3.168
+%         \end{verbatim}
+%     \end{minipage}
+%     \caption{Comparison of segmentation showing effect of block length on expected codeword lengths}
+%     \label{fig:Q1-Seg}
+% \end{figure}
+
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \begin{verbatim}
+Huffman Code:
+ 0 - _ - 11
+ 1 - A - 0110
+ 2 - B - 0001001
+ 3 - C - 011100
+ 4 - D - 00100
+ 5 - E - 101
+ 6 - F - 011101
+ 7 - G - 010001
+ 8 - H - 1000
+ 9 - I - 1001
+10 - J - 001010111
+11 - K - 0010100
+12 - L - 01001
+13 - M - 001011
+14 - N - 00000
+15 - O - 0101
+16 - P - 0001000
+17 - Q - 00101011011
+18 - R - 00011
+19 - S - 00001
+20 - T - 0011
+21 - U - 000101
+22 - V - 00101010
+23 - W - 01111
+24 - X - 0010101100
+25 - Y - 010000
+26 - Z - 00101011010
+expected codeword length:  4.093
+        \end{verbatim}
+        \caption{Output from Q1\_Huffman.py applied to the source text}
+        \label{fig:Q1huff}
+    \end{minipage}\hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \begin{verbatim}
+Shannon-Fano Code:
+ 0 - _ - 000
+ 1 - A - 1000
+ 2 - B - 1110100
+ 3 - C - 1001100
+ 4 - D - 10100
+ 5 - E - 0100
+ 6 - F - 0101100
+ 7 - G - 101100
+ 8 - H - 01100
+ 9 - I - 11100
+10 - J - 0111100000
+11 - K - 1101100
+12 - L - 10010
+13 - M - 011100
+14 - N - 01010
+15 - O - 1100
+16 - P - 0011100
+17 - Q - 101101000000
+18 - R - 11010
+19 - S - 00110
+20 - T - 0010
+21 - U - 111100
+22 - V - 10111000
+23 - W - 101010
+24 - X - 11111000000
+25 - Y - 011010
+26 - Z - 011101000000
+expected codeword length:  4.5553
+        \end{verbatim}
+        \caption{Output from Q1\_Shannon.py applied to the source text}
+        \label{fig:Q1shan}
+    \end{minipage}
+\end{figure}
+
+\section*{Question 2}
+
+The Huffman and Shannon-Fano methods assume the source to be Bernoulli. However, for English this is not an accurate approximation. Not all combinations of letters spell words so letters are clearly dependant on preceding letters, for example the letter "Q" is very likely to be followed by a "U". However, one could suggest segmenting English into blocks of single whole words but then grammar rules dictate the combining of certain types of words meaning that words are not independent either. Even if segmented into full sentences (which would have a very significant computational complexity) then English remains non-Bernoulli as sentences in series usually follow the same theme and can reference each other too and so would not be independent.
+
+\bigskip
+Script Q2\_English.py (pg.\pageref{PQ2_English}) constructs the Huffman code for pairs of letters. This method finds the expected codeword length to be 3.655, figure \ref{fig:Q2_English} includes this and the codewords for the 15 most frequent pairs. Segmentation in this case reduces the overall message length. We can compare this code with code for single letters by considering the expected codeword length per letter. Earlier in the project the expected codeword length was 4.093, after segmenting into pairs this becomes 3.655. This is a 10.7\% reduction and represents a significant saving.
+
+\bigskip
+Segmentation of English text leads to greater reduction in code length than a Bernoulli source with the same distribution of letter frequencies as English. Unlike a Bernoulli source, letters in English carry information about their neighbouring letters. This can be seen in how it is possible to identify some words with letters removed, such as "M\_ATHS". This means English has a lower entropy than a Bernoulli source with the same letter frequency. Therefore, segmenting English allows for a reduction in redundancy which is absent in a Bernoulli source.
+
+% \bigskip
+% We also note that in English there are some letter pairs which never occur, such as "QQ" or "XX", and so don't need codewords. This reduces the complexity involved with calculating a code. For small alphabets a reduction in the size of the alphabet can lead to a more efficient coding (consider the case of 3 messages where the first two are of equal probability and the last message has zero probability), however, for large alphabets such as the alphabet of pairs of letters this efficiency saving is negligible.
+
+\bigskip
+Figure \ref{fig:Q2_Bernoulli} includes output from script Q2\_Bernoulli.py (pg.\pageref{fig:Q2_Bernoulli}) which calculates the Huffman code for pairs of letters for a Bernoulli source with the same letter distribution as English. This method finds an expected codeword length of 4.066. Comparing this with expected codeword length for pairs of letters in English we can see that segmenting the Bernoulli source leads to a very small reduction ($\approx 0.7\%$) in codeword length compared with the Huffman code calculated in question 1, while English text after segmentation experiences a relatively large reduction ($\approx 10.7\%$).
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \begin{verbatim}
+Huffman Code:
+E_ : 00001
+HE : 01110
+_T : 10011
+D_ : 10111
+T_ : 11100
+TH : 11111
+_A : 000001
+_S : 000111
+S_ : 010100
+_W : 011000
+_I : 100001
+_H : 100011
+ER : 101000
+IN : 101010
+N_ : 101100
+length of codebook:  369
+expected length per block:  7.309
+expected length per letter: 3.655
+        \end{verbatim}
+    \end{minipage}\hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \begin{verbatim}
+Huffman Code:
+HE : 00101
+TH : 01110
+ER : 001110
+IN : 010110
+ED : 100001
+AN : 100110
+OU : 101111
+RE : 110011
+NT : 111001
+TO : 111010
+ND : 111101
+ON : 111111
+ES : 0000011
+SH : 0000101
+AS : 0000111
+length of codebook:  432
+expected length per block:  7.728
+expected length per letter: 3.864
+        \end{verbatim}
+    \end{minipage}
+    \caption{Output from Q2\_English.py: Huffman code (first 15 codewords) for pairs of letters with message probabilities sampled from source text II-19-2-dataC.txt. The codes on the left and right show the codes for the cases including and excluding spaces respectively.}
+    \label{fig:Q2_English}
+\end{figure}
+
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \begin{verbatim}
+Huffman Code:
+__ : 00010
+E_ : 001000
+_E : 001001
+T_ : 011111
+_T : 100000
+O_ : 101011
+_O : 101100
+A_ : 101111
+_A : 110000
+H_ : 111110
+_H : 111111
+I_ : 0000011
+_I : 0000100
+N_ : 0001101
+_N : 0001110
+length of codebook:  729
+expected length per block:  8.132
+expected length per letter: 4.066
+        \end{verbatim}
+    \end{minipage}\hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \begin{verbatim}
+Huffman Code:
+EE : 011101
+TE : 111110
+ET : 111111
+OE : 0001100
+EO : 0001101
+EA : 0010010
+AE : 0010011
+HE : 0101001
+EH : 0101010
+TT : 0101011
+IE : 0110000
+EI : 0110001
+NE : 0110111
+EN : 0111000
+SE : 0111110
+length of codebook:  676
+expected length per block:  8.362
+expected length per letter: 4.181
+        \end{verbatim}
+    \end{minipage}
+    \caption{Output from Q2\_Bernoulli.py: Huffman code (first 15 codewords) for pairs of letters for a Bernoulli source with the same distribution of letter frequencies as English (calculated by sampling the source text II-19-2-dataC.txt). The codes on the left and right show the codes for the cases including and excluding spaces respectively.}
+    \label{fig:Q2_Bernoulli}
+\end{figure}
+
+
+
+\newpage
+\newpage
+\section*{Programs}
+
+\subsection*{Q1\_Entropy.py}\label{PQ1_Entropy}
+\inputminted[frame=none,linenos,framesep=2mm,baselinestretch=1]{python}{Q1_Entropy.py}
+
+\newpage
+\subsection*{Q1\_Huffman.py}\label{PQ1_Huffman}
+\inputminted[frame=none,linenos,framesep=2mm,baselinestretch=1]{python}{Q1_Huffman.py}
+
+\newpage
+\subsection*{Q1\_Shannon.py}\label{PQ1_Shannon}
+\inputminted[frame=none,linenos,framesep=2mm,baselinestretch=1]{python}{Q1_Shannon.py}
+
+\newpage
+\subsection*{Q2\_English.py}\label{PQ2_English}
+\inputminted[frame=none,linenos,framesep=2mm,baselinestretch=1]{python}{Q2_English.py}
+
+\newpage
+\subsection*{Q2\_Bernoulli.py}\label{PQ2_Bernoulli}
+\inputminted[frame=none,linenos,framesep=2mm,baselinestretch=1]{python}{Q2_Bernoulli.py}
+
+% \pagebreak
+% \section*{Sample Text}
+% This is the written English from the data file II-19-2-dataC.txt
+% \verbatiminput{II-19-2-dataC-english.txt}
+\end{document}
