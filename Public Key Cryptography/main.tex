@@ -1,0 +1,313 @@
+\documentclass[a4paper]{article}
+
+%% Language and font encodings
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+
+%% Sets page size and margins
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+%% Useful packages
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{textpos}
+\usepackage{float}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[colorlinks=true, allcolors=black]{hyperref}
+\usepackage{minted}
+\usepackage{relsize}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+\setlength{\parindent}{0pt}
+\newcommand{\m}{(mod \ m)}
+\newcommand{\mm}{(mod \ m')}
+
+\title{\vspace*{2cm}2.3 Public Key Cryptography\vspace*{-1.5cm}}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{textblock*}{100mm}(0cm,-5.5cm)
+\Huge 2.3
+\end{textblock*}
+
+\section*{Question 1}
+A simple modification that could be made to the basic trial division method is to only divide by every number up to $\sqrt[]{n}$ instead of up to $n$. This modification works because if $n$ has a factor, say $p$, with $p>\sqrt[]{n}$ then $n$ must have a second factor $q=n/p$ with $q<\sqrt[]{n}$. Therefore if $n$ has no factors less than $\sqrt[]{n}$ then it must have no factors greater than $\sqrt[]{n}$ and so we only have to check below $\sqrt[]{n}$.
+\bigbreak
+Program Q1.py, listed on page \pageref{PQ1}, applies this method. Below is some sample output demonstrating correct operation with known primes and non-primes as well as successful application to 10 digit numbers.
+
+\begin{table}[H]
+\centering
+\begin{verbatim}
+     Enter an integer: 17
+     17 is prime
+     
+     Enter an integer: 25
+     25 is not prime
+     
+     Enter an integer: 2
+     2 is not prime
+     
+     Enter an integer: 1234567891
+     1234567891 is prime
+\end{verbatim}
+\caption{Sample output from Q1.py}
+\end{table}
+
+\section*{Question 2}
+Program Q2.py, listed on page \pageref{PQ2}, computes complete prime factorisations of inputted integers. It is an adaptation of my first program into a recursive form. It removes prime factors of the given $n$ one at a time, from smallest factors to the biggest. The prime factorisation is returned as a list with repeated entries where appropriate.
+\bigbreak
+Below is some output from applying my algorithm to a few examples.
+\begin{table}[H]
+\centering
+\begin{verbatim}
+     Enter number to be factorised: 30
+     30 has the factors [2, 3, 5]
+     
+     Enter number to be factorised: 82387
+     82387 has the factors [82387]
+     
+     Enter number to be factorised: 2387745
+     2387745 has the factors [3, 3, 3, 5, 23, 769]
+     
+     Enter number to be factorised: 1858768989
+     1858768989 has the factors [3, 7, 7, 11, 23, 23, 41, 53]
+\end{verbatim}
+\caption{Example output from program Q2.py}
+\end{table}
+
+\textbf{Complexity} \\
+This method has very variable run times for similarly sized numbers, however this variance only starts to become noticeable for larger numbers, above around $10^7$. Prime numbers take the longest to factorise relative to their size, while numbers with small prime factors to high powers are much faster. This is demonstrated in that my program took a runtime of approximately 0.03 seconds to factorise the prime $3,217,924,201$ while it took negligible time to factorise $2^{32} = 4,294,967,296$. More specifically this method has a complexity of $O\big(\sqrt[]{n}\big)$. This is can be shown by counting the arithmetic operations ($+,-,\times,\div$) as follows.
+\bigbreak
+First we need to note the following. To optimise performance I designed my recursive function to pass on between levels of the recursion the current position in the search. This means it saves double checking potential factors by starting from $2$ and working up at every level of the recursion. Thus it will first check two and and then work through odd numbers up to $M = max(q,\sqrt[]{p})$ where $p$ and $q$ are the first and second largest prime factors of $n$ respectively. These two values come from the fact that in order to find $q$ we must reach it in our search and then when at the bottom of our recursion (ie removed all prime factors but one) we must check up to the square root to prove that it is prime.
+\bigbreak
+To deduce the complexity we need to consider the worst, ie the largest, that this maximum value can be. This means either maximising $q$ or $\sqrt[]{p}$. 
+\begin{itemize}
+\item $q$ is maximised as a proportion of $n$ when $q=p$ and $n=pq=q^2$. Any 		greater and $q$ would become the first largest instead of second largest 		prime factor. This gives
+	\[ max(q) = \sqrt[]{n} \]
+\item $\sqrt[]{p}$ is maximised as a proportion of $n$ with $p=n$ (and there is no  	second largest prime). This gives
+	\[ max(\sqrt[]{p}) = \sqrt[]{n} \]
+\end{itemize}
+
+Thus
+\[ M = max(q,\sqrt[]{p}) = \sqrt[]{n} \]
+and therefore the method has a complexity of $O(\sqrt[]{n}$).
+
+
+
+\section*{Question 3}
+Program Q3.py listed on page \pageref{PQ3} is an implementation of Euclid's Algorithm. Below is the output from running Q3.py for each of the pairs of numbers specified in the project. The program calculates the highest common factor (hcf) and then expresses it as a linear combination of the original two numbers.
+\begin{table}[H]
+\begin{verbatim}
+     hcf(1996245783, 192784863) = 3
+     1996245783 x -11108123 + 192784863 x 115022224 = 3 
+     
+     hcf(2825746811, 758295345) = 1
+     2825746811 x -28353319 + 758295345 x 105657118 = 1 
+     
+     hcf(338063357376, 249508543104) = 46656
+     338063357376 x -356165 + 249508543104 x 482574 = 46656 
+     
+     hcf(338063357367, 249508543140) = 9
+     338063357367 x -8485693393 + 249508543140 x 11497409916 = 9
+\end{verbatim}
+\caption{The hcf for each of the given pairs of numbers as well as an expression of the hcf as a linear combination of the original two numbers}
+\end{table}
+
+\section*{Question 4}
+Euclid's algorithm can be used to find all the solutions in the unknown $x$ to the linear congruence:
+\[ ax \equiv b \quad \m \]
+
+\textbf{Claim:} There is a solution if and only if $d = hcf(a,m) | b$. When solutions exist they are of the form
+\[ x \equiv ub' \quad \mm \]
+where $b' = b/d$ and $u$ is determined by Euclid's algorithm such that $au+mv = d$.
+\bigbreak
+\textbf{Proof: ($\Rightarrow$)}
+Let $d=(a,m)$, by definition this gives $d|a$ and $d|m$. If there is a solution then $m|ax-b$. By the following we reach the result.
+\begin{align*}
+d|m \qquad m|ax-b \quad &\Rightarrow \quad d|ax-b \\
+d|a \qquad d|ax-b \quad &\Rightarrow \quad d|b
+\end{align*}
+
+\textbf{Proof: ($\Leftarrow$)}
+Assume $d = hcf(a,m) | b$. We have $d|a$ and $d|m$ by definition and $d|b$ by assumption. These imply $a = da'$, $m = dm'$, $b = db'$ respectively. We can now substitute these results into the linear congruence as follows
+\begin{align*}
+ax &\equiv b \quad \m \\
+ax-b &= km \qquad \text{for some k} \\
+(da')x-(db') &= k(dm') \\
+a'x - b' &= km' \\
+a'x &\equiv b' \quad \mm \tag{4.1}
+\end{align*}
+
+We have $(a',m')=1$ by construction since $a'$ and $d'$ are $a$ and $d$ with all common factors removed. Next, by Euclid's algorithm we can find integers $u$,$v$ such that
+\begin{align*}
+a'u + m'v &= 1 \\
+a'u &\equiv 1 \quad \mm
+\end{align*}
+
+This implies $a'$ is a unit mod m with inverse $u$. Applying $u$ to equation (4.1) we get
+\begin{align*}
+u(a'x) &\equiv u(b') \quad \mm \\
+(a'u)x &\equiv ub' \quad \mm \\
+x &\equiv ub' \quad \mm
+\end{align*} $\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad\qquad \square$
+\bigbreak
+Therefore Euclid's algorithm can be used to find all the solutions to a given congruence of the form
+\[ ax \equiv b \quad \m \]
+by applying Euclid's algorithm to calculating $d=hcf(a,m)$ as well as $u$ and $v$ in the the linear equation $au+bv=d$. Then $x$ is of the form
+\[ x = u\frac{b}{d} + k\frac{m}{d} \qquad \text{for some $k\in\mathbb{Z}$}\]
+
+\section*{Question 5}
+Program Q5.py is implementation of the method described in Question 4, it is listed on page \pageref{PQ5}. The results from applying this program to the congruences specified in the project are below. By the result from Question 4 the second congruence has no solution because $hcf(93174,2015)\nmid267975$.
+\begin{table}[H]
+\centering
+\begin{verbatim}
+     146295x ≡ 2017 (mod 313567)
+     => x = 267975 (mod 313567) 
+     
+     93174x ≡ 2015 (mod 267975)
+     => no solution 
+        because hcf(93174,2015) does not divide 267975 
+     
+     113314x ≡ 2014 (mod 660115)
+     => x = 11721 (mod 12455) 
+\end{verbatim}
+\caption{For each of the given linear congruences the solution or a reason for no solutions}
+\end{table}
+
+\section*{Question 6}
+Given $n$, $p$ and $q$ can be found by prime factorising $n$ with my program from Question 2. As previously discussed this method requires $O(\sqrt[]{n})$ operations.
+\bigbreak
+When given $p$ and $q$, and hence $\varphi(n)$, to find $d$ the worse case scenario is the same as the worse case scenario for Euclid's algorithm. That is, when at every step of Euclid's algorithm the quotient equals 1 such that the process moves as slowly as possible towards the $hcf$. A simple inspection shows us that this case is the Fibonacci numbers so the worse case scenario for this task is when $varphi(n)$ and $e$ are Fibonacci numbers. Therefore, noting that for the nth Fibonacci number, $F_n = O(\phi^n)$ where $\phi = \frac{1+\sqrt[]{5}}{2}$, we can then deduce that the complexity of this task is $O\big(\log_{\phi}\varphi(n)\big)$.
+
+\section*{Question 7}
+Program Q7.py, listed on page \pageref{PQ7}, computes the private decryption key, $(n,e)$, for a given encryption key, $(n,d)$. My program starts with the public key $(n,e)$ and then calculates primes $p,q$ such that $n=pq$. $\phi(n)$ is then simple to compute, $\phi(n) = (p-1)(q-1)$. Next the method from Question 5 is employed to solve for the unknown $d$ in the linear congruence $ed\equiv 1 \quad (mod\ \phi(n))$. Thus giving the private key $(n,d)$. Figure 5 shows the computed decryption keys corresponding to the encryption keys specified in the project brief.
+
+\begin{table}[H]
+\centering
+\begin{verbatim}
+     Public Key:  (1764053131, 103471)
+     Private Key: (1764053131, 191584927) 
+     
+     Public Key:  (1805760301, 39871477)
+     Private Key: (1805760301, 1452797497) 
+     
+     Public Key:  (9976901028181, 837856358917)
+     Private Key: (9976901028181, 3864734962285) 
+     
+     Public Key:  (1723466867, 692581937)
+     Private Key: (1723466867, 225248873) 
+     
+     Public Key:  (6734071952813, 2017)
+     Private Key: (6734071952813, 4073158775953) 
+     
+     Public Key:  (1603982333, 927145)
+     Private Key: (1603982333, 1518941485)
+\end{verbatim}
+\caption{The corresponding private key for each of the given public keys}
+\end{table}
+
+\section*{Question 8}
+Program Q8.py, listed on page \pageref{PQ8}, decrypts encrypted numbers. More specifically this program starts with a number, encrypts it and then decrypts it - so that it can check and confirm the decryption is accurate.
+\bigbreak
+\textbf{Python} \\
+I have been working in Python. Python has no upper limit on the size of integers. In practice Python is only limited by the memory capacity of the computer on which it is running and the time available to carry out the computation. This means my program can be trusted to work for $n$ with any arbitrary number of digits given that it is running on a computer with sufficient memory and runtime.
+\bigbreak
+\textbf{MATLAB} \\
+If I had written my program in MATLAB then the greatest number of digits that $n$ could have would be 7. This is limited due to the way MATLAB handles integers - it handles them as 64-bit real numbers. MATLAB can handle integers accurately to around 15 decimal digits. Beyond this this point the eps (floating-point relative accuracy) value becomes greater than $1$ and so addition and subtraction become unreliable.
+\bigbreak
+To calculate the maximum number of digits that $n$ can have we must consider the computation required: $m^e \ (mod\ n)$. To remain accurate my program would have to avoid dealing with numbers greater than $10^{16}$. Instead of carrying out the computation in two steps, taking $m$ to the power $e$ and then taking modulo $n$, my program multiplies by one factor of $m$ at a time, taking modulo $n$ after every step. This significantly reduces the size of the numbers that my program would have to process. This means that we require for all $m$ that
+\begin{align*}
+m^2 &< 10^{16} \\
+m &< 10^{8}
+\end{align*}
+Since the above must hold for all $m$ and we have that $0\leq m<n$ we deduce that $n$ must be a 7 digit number so as to limit $m$ to less than $10^8$. Thus my method, if coded in MATLAB, could be trusted up to $n$ with 7 digits.
+
+\section*{Question 9}
+Program Q9.py, listed on page \pageref{PQ9}, decrypts messages encoded with 00 $\leftrightarrow$ space, 01 $\leftrightarrow$ a, . . . , 26 $\leftrightarrow$ z, 27 $\leftrightarrow$ . 28 $\leftrightarrow$ : 29 $\leftrightarrow$ ', in blocks of 3 letters and encrypted with the public key $(937513,638471)$.
+\bigbreak
+It uses the method from Question 7 to compute the corresponding private key. Next it formats the encrypted message into a more processable form. Then it decrypts the encrypted numbers using my method from Question 8 and finally converts to plain text using the specified encoding pattern.
+\begin{table}[H]
+\centering
+\begin{verbatim}
+             179232 006825 263565 126615 474921 750809 900050 009287
+             554344 413204 757176 066356 716784 382286 696566 610518
+             510930 459403 922484 390971 773831 655925 633419 519880
+\end{verbatim}
+\caption{The encrypted message from the project brief}
+\end{table}
+
+Table 6 contains the encrypted message specified in the project brief. Applying Q9.py the following decryption is produced: \\
+\begin{verbatim}
+     i'm not really in a cheese mood. now that's what i call an egg sandwich.
+\end{verbatim}
+
+\pagebreak
+\section*{Programs}
+
+\subsection*{Q1.py}\label{PQ1}
+\inputminted[frame=single,linenos,framesep=2mm,baselinestretch=1.2]{python}{Q1.py}
+
+\subsection*{Q2.py}\label{PQ2}
+\inputminted[frame=single,linenos,framesep=2mm,baselinestretch=1.2]{python}{Q2.py}
+
+\pagebreak
+\subsection*{Q3.py}\label{PQ3}
+\inputminted[frame=single,linenos,framesep=2mm,baselinestretch=1.2]{python}{Q3.py}
+
+\pagebreak
+\subsection*{Q5.py}\label{PQ5}
+\inputminted[frame=single,linenos,framesep=2mm,baselinestretch=1.2]{python}{Q5.py}
+
+\pagebreak
+\subsection*{Q7.py}\label{PQ7}
+\inputminted[frame=single,linenos,framesep=2mm,baselinestretch=1.2]{python}{Q7.py}
+
+\subsection*{Q8.py}\label{PQ8}
+\inputminted[frame=single,linenos,framesep=2mm,baselinestretch=1.2]{python}{Q8.py}
+
+\pagebreak
+\subsection*{Q9.py}\label{PQ9}
+\inputminted[frame=single,linenos,framesep=2mm,baselinestretch=1.2]{python}{Q9.py}
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
